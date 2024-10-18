@@ -1,0 +1,874 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { Box, Typography, Button, Card, CardContent, IconButton, TextField, Tabs, Tab, Grid, Rating, Avatar, useMediaQuery, Accordion, AccordionSummary, AccordionDetails, CardMedia } from '@mui/material';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import { CheckCircle } from '@mui/icons-material';
+import ProfileImage from "../../assets/images/profile.png";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ArrowForward } from '@mui/icons-material';
+import Blog1 from '../../assets/images/blog/interior-painting-colors.jpg'
+import Blog2 from '../../assets/images/blog/Painting-Services.jpg'
+import Blog3 from '../../assets/images/blog/Residential-Painting-Services.jpg'
+import Blog4 from '../../assets/images/blog/Commercial-Painting-Services.jpg'
+import Blog5 from '../../assets/images/blog/Professional-kitchen-Cabinet-paiting-Services.jpg'
+import { config } from '../../config/config';
+import { apiList, invokeApi } from '../../services/apiServices';
+import { useTheme } from '@emotion/react';
+import { useNavigate } from 'react-router-dom';
+import Image1 from '../../assets/images/Ads.jpg'
+import TabAndImages from "../components/TabAndImages";
+import StartIcon from '@mui/icons-material/FirstPage'; // Or any other start icon
+import EndIcon from '@mui/icons-material/LastPage'; // Or any other end icon
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import Slider from 'react-slick';
+const articles = [
+    {
+        image: Blog1,
+        title: "Colors for your House",
+        description: "Every one dream is to build a house, and it is a biggest achievement also."
+    },
+    {
+        image: Blog2,
+        title: "Home Painting Services Near Me",
+        description: "Whenever you looking for the Professional Home services near you, we are the one."
+    },
+    {
+        image: Blog3,
+        title: "Residential Painting Services Near Me",
+        description: "Transform your home with our comprehensive Residential Painting Services near you."
+    },
+    {
+        image: Blog4,
+        title: "Best Commercial Exterior Painting Services",
+        description: "Our Expert Best commercial exterior painting services are fitted to meet the unique requirements of businesses, property managers, and building owners."
+    },
+    {
+        image: Blog5,
+        title: "Professional Kitchen Cabinet Painting Services",
+        description: "Transform your kitchen with our Professional kitchen cabinet painting services. Enjoy the beauty and functionality of a freshly updated space."
+    },
+];
+
+
+const ServiceDetails = () => {
+
+    const navigate = useNavigate();
+
+
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const theme = useTheme();
+        const isMobile = useMediaQuery("(min-width:360px) and (max-width:500px)");
+
+
+    const url = window.location.pathname;
+    const ogUrl = url.split('/bangalore/')[1];
+    //api data
+    const [pageData, setPageData] = useState("");
+    const [reviewsData, setReviewsData] = useState([]);
+    const [faqsData, setFaqData] = useState([]);
+    const [gallery, setGallery] = useState([]);
+
+    const [value, setValue] = useState(0);
+    const sections = ['getQuote', 'about', 'services', 'gallery', 'reviews', 'faqs', 'articles'];
+    const sectionRefs = useRef(sections.map(() => React.createRef()));
+
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+        sectionRefs.current[newValue].current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+
+
+    const handleScroll = () => {
+        const scrollPosition = window.scrollY + window.innerHeight * 0.5;
+        const sectionTops = sectionRefs.current.map(ref => ref.current.getBoundingClientRect().top + window.scrollY);
+
+        const activeSection = sectionTops.findIndex((top, index) => {
+            const nextTop = sectionTops[index + 1] || Infinity;
+            return scrollPosition >= top && scrollPosition < nextTop;
+        });
+
+        if (activeSection !== -1 && activeSection !== value) {
+            setValue(activeSection);
+        }
+    };
+    const CustomArrow = ({ onClick, type }) => (
+        <Button
+            variant="contained"
+            color="secondary"
+            onClick={onClick}
+            sx={{
+                position: 'absolute',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                zIndex: 1,
+                ...(type === 'prev' ? { left: 0 } : { right: 0 })
+            }}
+        >
+            {type === 'prev' ? <ArrowBack /> : <ArrowForward />}
+        </Button>
+    );
+
+
+    const settings = {
+        dots: false,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 3,
+        slidesToScroll: 1,
+        nextArrow: <CustomArrow type="next" />,
+        prevArrow: <CustomArrow type="prev" />,
+        responsive: [
+            {
+                breakpoint: 1024,
+                settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 1,
+                }
+            },
+            {
+                breakpoint: 600,
+                settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                }
+            }
+        ]
+    };
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+    const cardsData = [
+        {
+            image: 'https://www.bookmypainter.com/static/media/image.psd.8af1a3ea45ba6cbd64ea.webp',
+            title: 'Interior Painting',
+            path: '/interior-painting-in-bangalore/',
+        },
+        {
+            image: 'https://www.bookmypainter.com/static/media/Exterior-Painting.41aafbd35dd782e0ae6b.webp',
+            title: 'Exterior Painting',
+            path: '/exterior-painting-in-bangalore',
+        },
+        {
+            image: 'https://www.bookmypainter.com/static/media/Waterproofing.f2e14caa1f76a82243a6.webp',
+            title: 'Waterproofing',
+            path: '/waterproofing-painting-in-bangalore/',
+        },
+        {
+            image: 'https://www.bookmypainter.com/static/media/Wood-Polish.33f55a1f1ca5cb19b450.webp',
+            title: 'WoodPolish',
+            path: '/wood-polish-in-bangalore/',
+        },
+        {
+            image: 'https://www.bookmypainter.com/static/media/Wall-Texture-Painting.ed9f111cdb9fe6e44b54.webp',
+            title: 'WallTexture',
+            path: '/wall-texture-in-bangalore/',
+        },
+        {
+            image: 'https://www.bookmypainter.com/static/media/Wall-Stencil-Designs.39aec5d26ebbc88e35b8.webp',
+            title: 'Stencil',
+            path: '/stencil-painting-in-bangalore/',
+        },
+    ];
+
+    // get data from api
+    useEffect(() => {
+        const getPageData = async () => {
+            const params = {
+                ogUrl: ogUrl,
+            };
+            try {
+                const response = await invokeApi(
+                    config.getMyCollege + apiList.getPage,
+                    params,
+                );
+                if (response?.status >= 200 && response?.status < 300) {
+                    setPageData(response.data);
+                    setReviewsData(response.data.reviews);
+                    setFaqData(response.data.faq);
+                    setGallery(response.data.gallery);
+                } else {
+                    console.error("Failed to fetch data:", response);
+                }
+            } catch (error) {
+                console.error("Error during data fetch:", error);
+            }
+        };
+        getPageData();
+
+    }, []);
+
+    const handleCardClick = (path) => {
+        navigate(path);
+    };
+
+    const itemsPerPage = 3; // Number of items to show per page
+    const maxItemsOnPage = 2;
+    const handlePrevious = () => {
+        setCurrentIndex((prevIndex) => Math.max(prevIndex - 3, 0));
+    };
+
+    const handleNext = () => {
+        setCurrentIndex((prevIndex) => Math.min(prevIndex + 3, cardsData.length - itemsPerPage));
+    };
+
+
+
+    return (
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', overflowX: 'hidden' }}>
+            <Navbar />
+            {isMobile && (
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        left: 0,
+                        padding: '10px',
+                        color: 'white',
+                    }}
+                >
+                    <Grid
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "13px",
+                        }}
+                    >
+                        <Typography
+                            variant="h2"
+                            sx={{
+                                width: "100%",
+                                fontWeight: "600",
+                                fontSize: { xs: "20px", sm: "20px", md: "20px" },
+                                lineHeight: "34px",
+                                color: "white",
+                                textAlign: "center",
+                            }}
+                        >
+                            Transform Your Space with Our Expert Painting Services
+                        </Typography>
+                        <Typography
+                            variant="p"
+                            sx={{
+                                width: "100%",
+                                fontWeight: "400",
+                                fontSize: { xs: "12px", sm: "14px", md: "18px" },
+                                lineHeight: { xs: "5px", sm: "3px", md: "3px" },
+                                color: "white",
+                                textAlign: "center",
+                            }}
+                        >
+                            Bringing Color and Life to Every Corner of Your Home
+                        </Typography>
+                    </Grid>
+                </Box>
+            )}
+             <div ref={sectionRefs.current[0]}>
+                <Box
+                    sx={{
+                        height: isMobile ? '18vh' : '60vh',
+                        background: `url(${pageData.bannerUrl}) center/cover no-repeat`,
+                        backgroundSize: 'cover',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        textAlign: 'center',
+                        padding: '20px',
+                    }}
+                >
+                    {!isMobile && (
+                        <Card sx={{
+                            backgroundColor: '#00b4c278',
+                            padding: '10px',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                            color: 'white',
+                            maxWidth: '35%',
+                        }}>
+                            <CardContent>
+                                <Typography variant="h5" component="h2" sx={{ marginBottom: 2, textAlign: 'center', fontWeight: 'bold' }}>
+                                    Let's Connect
+                                </Typography>
+                                <Typography variant="body2" sx={{ marginBottom: 2, textAlign: 'center', fontWeight: 'bold', fontSize: '10px' }}>
+                                    Get Free Estimation & Color Consultation From Our Experts.
+                                </Typography>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Name"
+                                    variant="outlined"
+                                    sx={{
+                                        marginBottom: '10px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '4px',
+                                    }}
+                                />
+                                <TextField
+                                    fullWidth
+                                    placeholder="Phone Number"
+                                    variant="outlined"
+                                    sx={{
+                                        marginBottom: '10px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '4px',
+                                    }}
+                                />
+                                <TextField
+                                    fullWidth
+                                    variant="outlined"
+                                    placeholder="Message"
+                                    multiline
+                                    rows={1}
+                                    sx={{
+                                        marginBottom: '10px',
+                                        backgroundColor: 'white',
+                                        borderRadius: '4px',
+                                    }}
+                                />
+                                <Button variant="contained" color="secondary" startIcon={<CheckCircle />} fullWidth>
+                                    Book Now
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    )}
+                </Box>
+            </div>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    backgroundColor: '#f0f0f0',
+                }}
+            >
+               <Box
+                    sx={{
+                        position: 'sticky',
+                        top: isMobile ? '1.5vh' : '20vh',
+                        zIndex: 1000,
+                        width: '100%',
+                        backgroundColor: 'white',
+                    }}>
+                    <Tabs
+                        value={value}
+                        onChange={handleChange}
+                        scrollButtons="auto"
+                        variant={isMobile ? "scrollable" : "fullWidth"}
+                        textColor="secondary"
+                        indicatorColor="secondary"
+                        sx={{
+                            width: '100%',
+                            borderBottom: 1,
+                            borderColor: 'divider',
+                            '& .MuiTab-root': {
+                                fontSize: '10px',
+                                fontWeight: '700',
+                                color: 'black',
+                            },
+                            '& .Mui-selected': {
+                                color: 'secondary',
+                            },
+                        }}
+                    >
+                        <Tab label="Get Free Quote" />
+                        <Tab label="About" />
+                        <Tab label="Signature Services" />
+                        <Tab label="Gallery" />
+                        <Tab label="Reviews" />
+                        <Tab label="FAQ's" />
+                        <Tab label="Articles" />
+                    </Tabs>
+                </Box>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} lg={8}>
+                        <Box
+                            sx={{
+                                width: { xs: '95%', sm: '92%' },
+                                backgroundColor: 'white',
+                                borderRadius: '6px',
+                                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                                padding: '20px',
+                                marginTop: '20px',
+                                marginLeft: { xs: '0px', sm: '20px' },
+                            }}
+                        >
+                            {sections.map((section, index) => (
+                                <div key={index} ref={sectionRefs.current[index]}>
+
+                                    {index === 1 && (
+                                        <>
+                                            <div ref={sectionRefs.current[2]}>
+                                                <Grid
+                                                    sx={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        gap: "13px",
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="h2"
+                                                        sx={{
+                                                            width: "100%",
+                                                            fontWeight: "600",
+                                                            fontSize: { xs: "16px", sm: "25px", md: "25px" },
+                                                            lineHeight: "34px",
+                                                            color: "#333333",
+                                                        }}
+                                                    >
+                                                        Your One-Stop Destination for Painting Perfection
+                                                    </Typography>
+                                                    {/* <Typography
+                                                        variant="p"
+                                                        sx={{
+                                                            width: "100%",
+                                                            fontWeight: "400",
+                                                            fontSize: { xs: "10px", sm: "12px", md: "16px" },
+                                                            lineHeight: { xs: "25px", sm: "30px", md: "30px" },
+                                                            color: "#95959B",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        Crafting Beauty and Precision in Every Project
+                                                    </Typography> */}
+                                                </Grid>
+                                                <Grid item xs={12}>
+                                                    <Typography
+                                                        component="div"
+                                                        dangerouslySetInnerHTML={{ __html: pageData.signatureServices }}
+                                                        sx={{
+                                                            textAlign: 'left',
+                                                            maxWidth: '100%',
+                                                            overflowWrap: 'break-word',
+                                                            wordWrap: 'break-word',
+                                                            hyphens: 'auto',
+                                                            img: {
+                                                                maxWidth: '100%',
+                                                                height: 'auto',
+                                                            },
+                                                            p: {
+                                                                margin: 0,
+                                                            },
+                                                            '@media (max-width: 600px)': {
+                                                                fontSize: '14px',
+                                                                paddingLeft: '16px',
+                                                                paddingRight: '16px',
+                                                            },
+                                                            '@media (min-width: 600px)': {
+                                                                fontSize: '16px',
+                                                            },
+                                                            '@media (min-width: 960px)': {
+                                                                fontSize: '18px',
+                                                            },
+                                                        }}
+                                                    />
+                                                </Grid>
+                                            </div>
+                                        </>
+                                    )}
+                                    {index === 2 && (
+                                        <>
+                                            <div ref={sectionRefs.current[1]}>
+                                                <Typography
+                                                    variant="h2"
+                                                    sx={{
+                                                        width: "100%",
+                                                        fontWeight: "600",
+                                                        fontSize: { xs: "20px", sm: "25px", md: "25px" },
+                                                        lineHeight: "34px",
+                                                        color: "#333333",
+                                                        textAlign: "center",
+                                                        marginLeft: isMobile ? '-16px' : '0',
+                                                        // marginTop:'-40px'
+                                                    }}
+                                                >
+                                                    Best Painting Choices for Your Home
+                                                </Typography>
+                                                <Grid container spacing={2} sx={{ marginTop: "10px", marginBottom: "20px", alignItems: "center" }}>
+
+                                                    {!isMobile() && (
+                                                        <Grid item>
+                                                            <IconButton onClick={handlePrevious} disabled={currentIndex === 0}>
+                                                                <StartIcon />
+                                                            </IconButton>
+                                                        </Grid>
+                                                    )}
+
+                                                    {cardsData.slice(currentIndex, currentIndex + itemsPerPage).map((card, index) => (
+                                                        <Grid container item xs={11.4} sm={6} md={3.4} >
+                                                            <Card sx={{ height: '100%', }}>
+                                                                <CardContent>
+                                                                    <img src={card.image} alt={`Card ${index + 1}`} style={{ width: '100%', borderRadius: '4px' }} />
+                                                                    <Typography
+                                                                        variant="body2"
+                                                                        sx={{
+                                                                            width: "100%",
+                                                                            fontWeight: "700",
+                                                                            fontSize: { xs: "20px", sm: "12px", md: "16px", lg: "10px" },
+                                                                            lineHeight: { xs: "25px", sm: "30px", md: "30px" },
+                                                                            color: "black",
+                                                                            textAlign: "center",
+                                                                            marginTop: isMobile ? "18px" : "10px",
+                                                                        }}>
+                                                                        {card.title}
+                                                                    </Typography>
+                                                                </CardContent>
+                                                            </Card>
+                                                        </Grid>
+                                                    ))}
+
+                                                    {!isMobile() && (
+                                                        <Grid item>
+                                                            <IconButton onClick={handleNext} disabled={currentIndex === cardsData.length - itemsPerPage}>
+                                                                <EndIcon />
+                                                            </IconButton>
+                                                        </Grid>
+                                                    )}
+                                                </Grid>
+
+                                            </div>
+                                        </>
+                                    )}
+                                    {index === 3 && (
+                                        <>
+                                            <div ref={sectionRefs.current[3]}>
+                                                <Grid
+                                                    sx={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        gap: "13px",
+                                                        marginTop: "10px",
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="h2"
+                                                        sx={{
+                                                            width: "100%",
+                                                            fontWeight: "600",
+                                                            fontSize: { xs: "20px", sm: "25px", md: "25px" },
+                                                            lineHeight: "34px",
+                                                            color: "#333333",
+                                                            textAlign: "center",
+                                                            marginLeft: isMobile ? '-16px' : '0'
+                                                        }}
+                                                    >
+                                                        Gallery of Our Masterful Painting Projects
+                                                    </Typography>
+                                                    <Typography
+                                                        variant="p"
+                                                        sx={{
+                                                            width: "100%",
+                                                            fontWeight: "400",
+                                                            fontSize: { xs: "14px", sm: "12px", md: "16px" },
+                                                            lineHeight: { xs: "25px", sm: "30px", md: "30px" },
+                                                            color: "#95959B",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        See the Transformation, Feel the Difference
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid container spacing={2} sx={{ marginTop: "10px" }}>
+                                                    {gallery.map((card, index) => (
+                                                        <Grid
+                                                            item
+                                                            xs={12}
+                                                            sm={6}
+                                                            md={4}
+                                                            lg={2}
+                                                            key={index}
+                                                            sx={{
+                                                                paddingLeft: { xs: '16px', sm: 0 },
+                                                                paddingRight: { xs: '16px', sm: 0 },
+                                                            }}
+                                                        >
+                                                            <img
+                                                                src={card.image_url}
+                                                                alt={`Card ${index + 1}`}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    borderRadius: '4px'
+                                                                }}
+                                                            />
+                                                        </Grid>
+                                                    ))}
+                                                </Grid>
+                                            </div>
+                                        </>
+                                    )}
+                                    {index === 4 && (
+                                        <>
+                                            <div ref={sectionRefs.current[4]}>
+                                                <Grid
+                                                    sx={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        gap: "13px",
+                                                        marginTop: "10px",
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="h2"
+                                                        sx={{
+                                                            width: "100%",
+                                                            fontWeight: "600",
+                                                            fontSize: { xs: "20px", sm: "25px", md: "25px" },
+                                                            lineHeight: "34px",
+                                                            color: "#333333",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        Hear from Our Satisfied Clients
+                                                    </Typography>
+                                                    <Typography
+                                                        variant="p"
+                                                        sx={{
+                                                            width: "100%",
+                                                            fontWeight: "400",
+                                                            fontSize: { xs: "14px", sm: "12px", md: "16px" },
+                                                            lineHeight: { xs: "25px", sm: "30px", md: "30px" },
+                                                            color: "#95959B",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        Real Stories, Real Transformations
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid container spacing={2} sx={{ marginTop: "10px", marginBottom: "20px", alignItems: "center" }}>
+                                                    {!isMobile() && (
+                                                        <Grid item>
+                                                            <IconButton onClick={handlePrevious} disabled={currentIndex === 0}>
+                                                                <StartIcon />
+                                                            </IconButton>
+                                                        </Grid>
+                                                    )}
+                                                    <Grid container item xs={11.4} sm={6} md={10} spacing={2}>
+                                                        {reviewsData.slice(currentIndex, currentIndex + itemsPerPage).map((review) => (
+                                                            <Grid item xs={12} sm={6} md={6} key={review.id}>
+                                                                <Card sx={{ height: '100%', }}>
+                                                                    <CardContent>
+                                                                        <Box display="flex" flexDirection="column" justifyContent="space-between" alignItems="center" height="100%">
+                                                                            <Typography variant="body1" sx={{ fontWeight: 'bold' }} gutterBottom>
+                                                                                "{review.review}"
+                                                                            </Typography>
+                                                                            <Box display="flex" alignItems="center" marginTop={2}>
+                                                                                <Avatar src={ProfileImage} alt="profile" sx={{ width: 40, height: 40, marginRight: 2 }} />
+                                                                                <Box>
+                                                                                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                                                                        - {review.customer_name}
+                                                                                    </Typography>
+                                                                                    <Box display="flex" alignItems="center">
+                                                                                        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>{review.ratings}</Typography>
+                                                                                        <Rating value={review.ratings} precision={0.5} readOnly sx={{ marginLeft: 1 }} />
+                                                                                    </Box>
+                                                                                </Box>
+                                                                            </Box>
+                                                                        </Box>
+                                                                    </CardContent>
+                                                                </Card>
+                                                            </Grid>
+                                                        ))}
+                                                    </Grid>
+                                                    {!isMobile() && (
+                                                        <Grid item>
+                                                            <IconButton onClick={handleNext} disabled={currentIndex + itemsPerPage >= reviewsData.length}>
+                                                                <EndIcon />
+                                                            </IconButton>
+                                                        </Grid>
+                                                    )}
+                                                </Grid>
+                                            </div>
+                                        </>
+                                    )}
+                                    {index === 5 && (
+                                        <>
+                                            <div ref={sectionRefs.current[5]}>
+                                                <Grid
+                                                    sx={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        gap: "13px",
+                                                        marginTop: "10px",
+                                                        paddingLeft: { xs: '16px', sm: 0 },
+                                                        paddingRight: { xs: '16px', sm: 0 },
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="h2"
+                                                        sx={{
+                                                            width: "100%",
+                                                            fontWeight: "600",
+                                                            fontSize: { xs: "20px", sm: "25px", md: "25px" },
+                                                            lineHeight: "34px",
+                                                            color: "#333333",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        Frequently Asked Questions
+                                                    </Typography>
+                                                    <Typography
+                                                        variant="p"
+                                                        sx={{
+                                                            width: "100%",
+                                                            fontWeight: "400",
+                                                            fontSize: { xs: "10px", sm: "12px", md: "16px" },
+                                                            lineHeight: { xs: "25px", sm: "30px", md: "30px" },
+                                                            color: "#95959B",
+                                                            textAlign: "center",
+                                                        }}
+                                                    >
+                                                        Your Queries Answered with Clarity and Care
+                                                    </Typography>
+                                                </Grid>
+                                                <Grid container spacing={2} sx={{ marginBottom: "10px" }}>
+                                                    {faqsData.map((faq, index) => (
+                                                        <Grid item xs={12} key={index}
+                                                            sx={{
+                                                                paddingLeft: { xs: '16px', sm: 0 },
+                                                                paddingRight: { xs: '16px', sm: 0 },
+
+                                                            }}
+                                                        >
+                                                            <Accordion>
+                                                                <AccordionSummary
+                                                                    expandIcon={<ExpandMoreIcon />}
+                                                                    aria-controls={`panel${index}-content`}
+                                                                    id={`panel${index}-header`}
+                                                                    sx={{ backgroundColor: '#f9fefe' }}
+                                                                >
+                                                                    <Typography variant="h6" sx={{ backgroundColor: '#f9fefe' }}>{faq.question}</Typography>
+                                                                </AccordionSummary>
+                                                                <AccordionDetails>
+                                                                    <Typography variant="body2" sx={{ backgroundColor: '#f9fefe' }} dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                                                                </AccordionDetails>
+                                                            </Accordion>
+                                                        </Grid>
+                                                    ))}
+                                                </Grid>
+                                            </div>
+                                        </>
+                                    )}
+                                    {index === 6 && (
+                                        <>
+                                            <div ref={sectionRefs.current[6]}>
+                                                <Grid
+                                                    sx={{
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        gap: '13px',
+                                                        marginTop: isMobile ? '20px' : '10px',
+                                                        paddingLeft: { xs: '16px', sm: 0 },
+                                                        paddingRight: { xs: '16px', sm: 0 },
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        variant="h2"
+                                                        sx={{
+                                                            width: '100%',
+                                                            fontWeight: '600',
+                                                            fontSize: { xs: '20px', sm: '25px', md: '25px' },
+                                                            lineHeight: '30px',
+                                                            color: '#333333',
+                                                            textAlign: 'center',
+                                                        }}
+                                                    >
+                                                        Insights and Inspiration Explore Our Articles
+                                                    </Typography>
+                                                    <Typography
+                                                        variant="p"
+                                                        sx={{
+                                                            width: '100%',
+                                                            fontWeight: '400',
+                                                            fontSize: { xs: '11px', sm: '12px', md: '16px' },
+                                                            lineHeight: { xs: '0px', sm: '30px', md: '30px' },
+                                                            color: '#95959B',
+                                                            textAlign: 'center',
+                                                        }}
+                                                    >
+                                                        Discover Expert Tips and Trends in Painting and Interior Design
+                                                    </Typography>
+                                                </Grid>
+
+                                                <Box sx={{ padding: '20px', marginTop: '10px' }}>
+                                                    <Grid container spacing={4}>
+                                                        <IconButton onClick={handlePrevious} disabled={currentIndex === 0}>
+                                                            <StartIcon />
+                                                        </IconButton>
+                                                        {articles.slice(currentIndex, currentIndex + maxItemsOnPage).map((blog, index) => (
+                                                            <Grid item xs={12} md={5.3} key={index}>
+                                                                <Card sx={{ maxWidth: 345, marginLeft: isMobile ? '-8px' : '0', marginRight: '25px' }}>
+                                                                    <CardMedia
+                                                                        component="img"
+                                                                        height="140"
+                                                                        image={blog.image}
+                                                                        alt={'Blog Image'}
+                                                                    />
+                                                                    <CardContent>
+                                                                        <Typography gutterBottom variant="body1" component="div" sx={{ fontWeight: 'bold' }}>
+                                                                            {blog.title}
+                                                                        </Typography>
+                                                                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+                                                                            {blog.description}
+                                                                        </Typography>
+                                                                    </CardContent>
+                                                                    <Box sx={{ padding: '16px' }}>
+                                                                        <Button
+                                                                            variant="contained"
+                                                                            color="secondary"
+                                                                            endIcon={<ArrowForward />}
+                                                                        >
+                                                                            Read More
+                                                                        </Button>
+                                                                    </Box>
+                                                                </Card>
+                                                            </Grid>
+                                                        ))}
+                                                        <IconButton onClick={handleNext} disabled={currentIndex + maxItemsOnPage >= articles.length}>
+                                                            <EndIcon />
+                                                        </IconButton>
+                                                    </Grid>
+                                                </Box>
+
+
+
+                                            </div>
+
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </Box>
+                    </Grid>
+
+                    <Grid item xs={4} sx={{ display: { xs: 'none', sm: 'block' } }}>
+                        <div style={{ position: 'sticky', top: '170px', marginTop: '20px', marginRight: '10px' }}>
+                            <img style={{ width: '100%' }} src={Image1} alt="Sticky Image" />
+                        </div>
+                    </Grid>
+                </Grid>
+            </Box>
+
+            <Footer />
+        </div >
+    );
+}
+
+export default ServiceDetails;
